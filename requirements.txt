@@ -1,0 +1,5 @@
+yfinance
+yahooquery
+isort
+black
+tabulate
