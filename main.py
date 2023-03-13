@@ -2,15 +2,24 @@ import argparse
 from datetime import datetime, timedelta
 
 import pandas
+
+import urllib3
 import yfinance as yf
 from tabulate import tabulate
 from yahooquery import Ticker
 
-# Definition of Terms: https://johnsonandjohnson.gcs-web.com/static-files/f2c6ced8-e949-499f-be2d-f651f6a9e083
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def print_info(ticker):
-    data = Ticker(ticker)
+    # Definition of Terms: https://johnsonandjohnson.gcs-web.com/static-files/f2c6ced8-e949-499f-be2d-f651f6a9e083
+    data = Ticker(ticker, validate=True, verify=False)
+    if not data.summary_detail:
+        print(f"Ticker {ticker} not found")
+        return
+    elif isinstance(data.balance_sheet(), str):
+        print(f"Ticker {ticker} has no balance sheet")
+        return
     res = []
     for i in range(len(data.balance_sheet())):
         bs = data.balance_sheet().iloc[[i]]
