@@ -2,10 +2,10 @@ import argparse
 from datetime import datetime, timedelta
 
 import pandas
-
 import urllib3
 import yfinance as yf
 from tabulate import tabulate
+from tqdm import tqdm
 from yahooquery import Ticker
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -14,12 +14,14 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def print_info(ticker):
     # Definition of Terms: https://johnsonandjohnson.gcs-web.com/static-files/f2c6ced8-e949-499f-be2d-f651f6a9e083
     data = Ticker(ticker, validate=True, verify=False)
+
     if not data.summary_detail:
         print(f"Ticker {ticker} not found")
         return
     elif isinstance(data.balance_sheet(), str):
         print(f"Ticker {ticker} has no balance sheet")
         return
+
     res = []
     for i in range(len(data.balance_sheet())):
         bs = data.balance_sheet().iloc[[i]]
@@ -58,6 +60,7 @@ def print_info(ticker):
         }
         res.append(fiscal_res)
 
+    # Get the latest values
     summary = data.summary_detail[list(data.summary_detail.keys())[0]]
     prev_close_price = summary["previousClose"]
     latest_res = {
@@ -85,12 +88,69 @@ def print_info(ticker):
     print(table)
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("ticker", help="Ticker symbol(s)", nargs="+")
-args = parser.parse_args()
+def get_latest_values(ticker):
+    data = Ticker(ticker, validate=True, verify=False)
 
-tickers = args.ticker if isinstance(args.ticker, list) else [args.ticker]
-# tickers = ["JPM", "T", "KHC", "QCOM", "INTC", "GOOG", "AMZN", "BAC"]
+    if not data.summary_detail:
+        print(f"Ticker {ticker} not found")
+        return
+    elif isinstance(data.balance_sheet(), str):
+        print(f"Ticker {ticker} has no balance sheet")
+        return
 
-for ticker in tickers:
-    print_info(ticker.upper())
+    i = len(data.balance_sheet()) - 1
+    bs = data.balance_sheet().iloc[[i]]
+
+    ord_shares_num = bs.get("OrdinarySharesNumber", pandas.Series(0)).item()
+    common_stock_equity = bs.get(
+        "CommonStockEquity", pandas.Series(0)
+    ).item()  # book value
+
+    in_stat = data.income_statement(trailing=False).iloc[[i]]
+    net_income_common_stock = in_stat.get(
+        "NetIncomeCommonStockholders", pandas.Series(0)
+    ).item()
+    total_revenue = in_stat.get("TotalRevenue", pandas.Series(0)).item()
+
+    summary = data.summary_detail[list(data.summary_detail.keys())[0]]
+    prev_close_price = summary["previousClose"]
+    latest_res = {
+        "Ticker": ticker,
+        "As of Day": datetime.today().strftime("%Y-%m-%d"),
+        "Close Price($)": prev_close_price,
+        "P/B": ord_shares_num * prev_close_price / common_stock_equity,
+        "Div. Y.(%)": summary.get("trailingAnnualDividendYield", 0.0) * 100,
+        "5y Div. Y.(%)": summary.get("fiveYearAvgDividendYield", 0.0),
+        "P/E": ord_shares_num * prev_close_price / net_income_common_stock,
+        "E/P(%)": net_income_common_stock / (ord_shares_num * prev_close_price) * 100,
+        "P/S": ord_shares_num * prev_close_price / total_revenue,
+    }
+
+    return latest_res
+
+
+# parser = argparse.ArgumentParser()
+# parser.add_argument("ticker", help="Ticker symbol(s)", nargs="+")
+# args = parser.parse_args()
+
+# tickers = args.ticker if isinstance(args.ticker, list) else [args.ticker]
+# # tickers = ["JPM", "T", "KHC", "QCOM", "INTC", "GOOG", "AMZN", "BAC"]
+
+# for ticker in tickers:
+#     print_info(ticker.upper())
+
+tickers = pandas.read_html(
+    "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", header=0
+)[0]
+tickers = tickers.Symbol.tolist()
+
+tickers_of_interest = []
+for ticker in tqdm(tickers):
+    values = get_latest_values(ticker.upper())
+    if isinstance(values, dict) and (
+        values["P/B"] < 1.5
+        or (values["P/E"] < 15 and values["P/E"] * values["P/B"] <= 22.5)
+    ):
+        tickers_of_interest.append(values["Ticker"])
+
+print(tickers_of_interest)
