@@ -1,7 +1,7 @@
 import argparse
 from datetime import datetime, timedelta
-import pandas
 
+import pandas
 import yfinance as yf
 from tabulate import tabulate
 from yahooquery import Ticker
@@ -76,13 +76,12 @@ def print_info(ticker):
     print(table)
 
 
-tickers = ["JPM", "T", "KHC", "QCOM", "INTC", "GOOG", "AMZN", "BAC"]
+parser = argparse.ArgumentParser()
+parser.add_argument("ticker", help="Ticker symbol(s)", nargs="+")
+args = parser.parse_args()
 
-# parser = argparse.ArgumentParser()
-# parser.add_argument("ticker", help="Ticker symbol")
-# args = parser.parse_args()
-
-# ticker = args.ticker.upper()
+tickers = args.ticker if isinstance(args.ticker, list) else [args.ticker]
+# tickers = ["JPM", "T", "KHC", "QCOM", "INTC", "GOOG", "AMZN", "BAC"]
 
 for ticker in tickers:
-    print_info(ticker)
+    print_info(ticker.upper())
