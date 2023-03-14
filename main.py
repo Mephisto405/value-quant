@@ -214,7 +214,7 @@ tickers.sort()
 """
 Print out the results
 """
-for ticker in ["WFC"]:
+for ticker in tickers:
     res = print_info(ticker.upper())
     table = tabulate(
         res,
