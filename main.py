@@ -127,116 +127,85 @@ def get_latest_values(ticker):
     return latest_res
 
 
-"""
-Get tickers by user input or default tickers
-"""
-parser = argparse.ArgumentParser()
-parser.add_argument("ticker", help="Ticker symbol(s)", nargs="+")
-args = parser.parse_args()
+def get_tickers_by_user_input():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ticker", help="Ticker symbol(s)", nargs="+")
+    args = parser.parse_args()
 
-tickers = args.ticker if isinstance(args.ticker, list) else [args.ticker]
-# tickers = ["JPM", "T", "KHC", "QCOM", "INTC", "GOOG", "AMZN", "BAC"]
-# tickers = [
-#     "AFL",
-#     "BEN",
-#     "C",
-#     "CE",
-#     "CFG",
-#     "CMA",
-#     "COF",
-#     "DHI",
-#     "DISH",
-#     "FITB",
-#     "GM",
-#     "GS",
-#     "HBAN",
-#     "HIG",
-#     "IP",
-#     "IVZ",
-#     "KEY",
-#     "KHC",
-#     "KIM",
-#     "KMI",
-#     "LEN",
-#     "LYB",
-#     "MU",
-#     "NRG",
-#     "O",
-#     "PARA",
-#     "PFG",
-#     "PHM",
-#     "PNC",
-#     "RF",
-#     "STLD",
-#     "SYF",
-#     "TSN",
-#     "VICI",
-#     "VZ",
-#     "ZION",
-# ]
-# tickers.sort()
-# print(f"Tickers: {len(tickers)}")
+    tickers = args.ticker if isinstance(args.ticker, list) else [args.ticker]
+    return tickers
 
-"""
-Print out the results
-"""
-for ticker in tickers:
-    res = print_info(ticker.upper())
-    table = tabulate(
-        res,
-        tablefmt="fancy_grid",
-        headers="keys",
-        missingval='"',
-        floatfmt=".2f",
-    )
-    print(table)
 
-"""
-Filter our tickers by earnings
-"""
-# filtered = []
-# for ticker in tqdm(tickers):
-#     try:
-#         res = print_info(ticker.upper())
-#         is_earn_positive = np.array(
-#             [isinstance(r["P/E"], float) and r["P/E"] > 0 for r in res]
-#         ).all()
-#         if not is_earn_positive:
-#             continue
-#         is_book_positive = np.array(
-#             [isinstance(r["P/B"], float) and r["P/B"] > 0 for r in res]
-#         ).all()
-#         if not is_book_positive:
-#             continue
-#         ep = np.array(
-#             [r["E/P(%)"] if isinstance(r["E/P(%)"], float) else 0.0 for r in res]
-#         )
-#         fy_div_y = res[-1]["5y Div. Y.(%)"]
-#         if not (isinstance(fy_div_y, float) and fy_div_y >= 4.0) and not (
-#             (ep > 5.0).all()
-#             and ((1 + ep / 100).prod() ** (1 / len(ep)) - 1 > 0.09).all()
-#         ):
-#             continue
-#         filtered.append(ticker)
-#     except Exception as e:
-#         print(f"Error: {ticker} - {e}")
-# print(filtered)
+def print_tickers(tickers):
+    for ticker in tickers:
+        res = print_info(ticker.upper())
+        table = tabulate(
+            res,
+            tablefmt="fancy_grid",
+            headers="keys",
+            missingval='"',
+            floatfmt=".2f",
+        )
+        print(table)
 
-"""
-Filter out tickers with P/B < 1.5 or P/E < 15 and P/E * P/B <= 22.5
-"""
-# tickers = pandas.read_html(
-#     "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", header=0
-# )[0]
-# tickers = tickers.Symbol.tolist()
 
-# tickers_of_interest = []
-# for ticker in tqdm(tickers):
-#     values = get_latest_values(ticker.upper())
-#     if isinstance(values, dict) and (
-#         values["P/B"] < 1.5
-#         or (values["P/E"] < 15 and values["P/E"] * values["P/B"] <= 22.5 and values["P/E"] > 0.0)
-#     ):
-#         tickers_of_interest.append(values["Ticker"])
+def filter_tickers_by_quants(tickers):
+    filtered = []
+    for ticker in tqdm(tickers):
+        try:
+            res = print_info(ticker.upper())
+            is_earn_positive = np.array(
+                [isinstance(r["P/E"], float) and r["P/E"] > 0 for r in res]
+            ).all()
+            if not is_earn_positive:
+                continue
+            is_book_positive = np.array(
+                [isinstance(r["P/B"], float) and r["P/B"] > 0 for r in res]
+            ).all()
+            if not is_book_positive:
+                continue
+            ep = np.array(
+                [r["E/P(%)"] if isinstance(r["E/P(%)"], float) else 0.0 for r in res]
+            )
+            fy_div_y = res[-1]["5y Div. Y.(%)"]
+            if not (isinstance(fy_div_y, float) and fy_div_y >= 4.0) and not (
+                (ep > 5.0).all()
+                and ((1 + ep / 100).prod() ** (1 / len(ep)) - 1 > 0.09).all()
+            ):
+                continue
+            filtered.append(ticker)
+        except Exception as e:
+            print(f"Error: {ticker} - {e}")
+    return filtered
 
-# print(tickers_of_interest)
+
+def filter_sp500_by_quants():
+    tickers = pandas.read_html(
+        "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", header=0
+    )[0]
+    tickers = tickers.Symbol.tolist()
+
+    filtered = []
+    for ticker in tqdm(tickers):
+        values = get_latest_values(ticker.upper())
+        if isinstance(values, dict) and (
+            values["P/B"] < 1.5
+            or (
+                values["P/E"] < 15
+                and values["P/E"] * values["P/B"] <= 22.5
+                and values["P/E"] > 0.0
+            )
+        ):
+            filtered.append(values["Ticker"])
+
+    return filtered
+
+
+if __name__ == "__main__":
+    # tickers = get_tickers_by_user_input()
+    # print_tickers(tickers)
+    # filtered = filter_tickers_by_quants(tickers)
+    # print_tickers(filtered)
+    filtered = filter_sp500_by_quants()
+    filtered = filter_tickers_by_quants(filtered)
+    print_tickers(filtered)
