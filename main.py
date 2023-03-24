@@ -130,86 +130,52 @@ def get_latest_values(ticker):
 """
 Get tickers by user input or default tickers
 """
-# parser = argparse.ArgumentParser()
-# parser.add_argument("ticker", help="Ticker symbol(s)", nargs="+")
-# args = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("ticker", help="Ticker symbol(s)", nargs="+")
+args = parser.parse_args()
 
-# tickers = args.ticker if isinstance(args.ticker, list) else [args.ticker]
+tickers = args.ticker if isinstance(args.ticker, list) else [args.ticker]
 # tickers = ["JPM", "T", "KHC", "QCOM", "INTC", "GOOG", "AMZN", "BAC"]
-tickers = [
-    "ADM",
-    "AFL",
-    "AIZ",
-    "ARE",
-    "BAC",
-    "BEN",
-    "BK",
-    "BWA",
-    "BXP",
-    "C",
-    "CE",
-    "CF",
-    "CFG",
-    "CMA",
-    "CNC",
-    "COF",
-    "CTRA",
-    "CVS",
-    "DFS",
-    "DHI",
-    "DISH",
-    "EVRG",
-    "FITB",
-    "FOX",
-    "FRC",
-    "GM",
-    "GPN",
-    "GS",
-    "HBAN",
-    "HIG",
-    "INTC",
-    "IP",
-    "IVZ",
-    "JPM",
-    "KEY",
-    "KHC",
-    "KIM",
-    "KMI",
-    "KMX",
-    "LEN",
-    "LYB",
-    "MHK",
-    "MTB",
-    "MU",
-    "NRG",
-    "NUE",
-    "O",
-    "PARA",
-    "PFE",
-    "PFG",
-    "PHM",
-    "PNC",
-    "PNW",
-    "QRVO",
-    "RF",
-    "SBNY",
-    "SIVB",
-    "STLD",
-    "STT",
-    "SWK",
-    "SYF",
-    "TFC",
-    "TSN",
-    "UHS",
-    "USB",
-    "VFC",
-    "VICI",
-    "VZ",
-    "WBA",
-    "WFC",
-    "ZION",
-]
-tickers.sort()
+# tickers = [
+#     "AFL",
+#     "BEN",
+#     "C",
+#     "CE",
+#     "CFG",
+#     "CMA",
+#     "COF",
+#     "DHI",
+#     "DISH",
+#     "FITB",
+#     "GM",
+#     "GS",
+#     "HBAN",
+#     "HIG",
+#     "IP",
+#     "IVZ",
+#     "KEY",
+#     "KHC",
+#     "KIM",
+#     "KMI",
+#     "LEN",
+#     "LYB",
+#     "MU",
+#     "NRG",
+#     "O",
+#     "PARA",
+#     "PFG",
+#     "PHM",
+#     "PNC",
+#     "RF",
+#     "STLD",
+#     "SYF",
+#     "TSN",
+#     "VICI",
+#     "VZ",
+#     "ZION",
+# ]
+# tickers.sort()
+# print(f"Tickers: {len(tickers)}")
 
 """
 Print out the results
@@ -241,6 +207,15 @@ Filter our tickers by earnings
 #             [isinstance(r["P/B"], float) and r["P/B"] > 0 for r in res]
 #         ).all()
 #         if not is_book_positive:
+#             continue
+#         ep = np.array(
+#             [r["E/P(%)"] if isinstance(r["E/P(%)"], float) else 0.0 for r in res]
+#         )
+#         fy_div_y = res[-1]["5y Div. Y.(%)"]
+#         if not (isinstance(fy_div_y, float) and fy_div_y >= 4.0) and not (
+#             (ep > 5.0).all()
+#             and ((1 + ep / 100).prod() ** (1 / len(ep)) - 1 > 0.09).all()
+#         ):
 #             continue
 #         filtered.append(ticker)
 #     except Exception as e:
