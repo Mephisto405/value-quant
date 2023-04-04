@@ -16,5 +16,5 @@ python tickers_info.py MSFT GOOG AAPL
 The below command will show the information of the tickers which are filtered by the given criteria.
 
 ```bash
-python tickers_info.py
+python filter_sp500.py
 ```
