@@ -202,5 +202,8 @@ def filter_sp500_by_quants():
 
 
 if __name__ == "__main__":
-    tickers = get_tickers_by_user_input()
-    print_tickers(tickers)
+    # tickers = get_tickers_by_user_input()
+    # print_tickers(tickers)
+    filtered = filter_sp500_by_quants()
+    filtered = filter_tickers_by_quants(filtered)
+    print_tickers(filtered)
