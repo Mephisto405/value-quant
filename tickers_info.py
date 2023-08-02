@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 import pandas
 import urllib3
-import yfinance as yf
 from tabulate import tabulate
 from tqdm import tqdm
 from yahooquery import Ticker
@@ -14,6 +13,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def print_info(ticker):
     # Definition of Terms: https://johnsonandjohnson.gcs-web.com/static-files/f2c6ced8-e949-499f-be2d-f651f6a9e083
+    ticker = ticker.replace(".", "-").upper()
     data = Ticker(ticker, validate=True, verify=False)
 
     balance_sheet = data.balance_sheet()
@@ -87,6 +87,7 @@ def print_info(ticker):
 
 
 def get_latest_values(ticker):
+    ticker = ticker.replace(".", "-").upper()
     data = Ticker(ticker, validate=True, verify=False)
 
     if not data.summary_detail:
